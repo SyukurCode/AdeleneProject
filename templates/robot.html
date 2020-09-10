@@ -1,0 +1,187 @@
+<html>
+	<head>
+		<script src="/static/scripts/jquery.min.js"></script>
+		<meta charset="utf-8">
+	    <link rel="stylesheet" href="/static/content/style.css">
+		<link rel="stylesheet" href="/static/content/bootstrap.css">
+		<script src="/static/scripts/joy.js"></script>
+		
+	</head>
+	
+	<body>
+
+		
+		<div style="float:left"><br/>
+			<div class="grid-container">
+					<div class="grid-item"><img src="http://adelene.local:8081" border="2"/></div>
+					<div class="grid-item"><br><br><br><br><br><br><input id="slider1" type="range" min="5" max="12.5" value='6.25' name="slider1" class="slider"/></div>
+			</div>
+		</div>
+		
+		<div style=" height:400px; width:200px; float:right;">
+			<center>
+			<h1><span style="color:#5C5C5C;">Circuit</span><span style="color:#139442"> Weekend</span></h1>
+			<h2>Robot Pengintai</h2><br><br>
+			</center>
+			<!-- <p><input id="slider1" type="range" min="1" max="12.5" value='1' name="slider1" class="slider"/></p> -->
+			
+			
+			<div class="row">
+				<div class="columnLateral">
+					<div id="joy1Div" style="width:200px;height:200px;margin:50px"></div>
+					<!-- Posizione X:<input id="joy1PosizioneX" type="text" /><br />
+					Posizione Y:<input id="joy1PosizioneY" type="text" /><br />
+					Direzione:<input id="joy1Direzione" type="text" /><br />
+					X :<input id="joy1X" type="text" name="joy1X"/></br>
+					Y :<input id="joy1Y" type="text" name="joy1Y"/> -->
+				</div>
+			</div>
+		</div>
+		
+		<script src="/static/scripts/jquery.min.js"></script>
+		
+		<script type="text/javascript">
+			// Create JoyStick object into the DIV 'joy1Div'
+			var change = 0;
+			var Joy1 = new JoyStick('joy1Div');
+
+			var joy1IinputPosX = document.getElementById("joy1PosizioneX");
+			var joy1InputPosY = document.getElementById("joy1PosizioneY");
+			var joy1Direzione = document.getElementById("joy1Direzione");
+			var joy1X = document.getElementById("joy1X");
+			var joy1Y = document.getElementById("joy1Y");
+			
+			setInterval(function(){ 
+				var speedY = Joy1.GetY();
+				var speedX = Joy1.GetX();
+				var SpeedL = 0;
+				var SpeedR = 0;
+				
+				
+				if(speedY > 0)
+				{
+					if(speedX >-20 && speedX < 20 )
+					{
+						SpeedL = speedY;
+						SpeedR = speedY;
+					}
+					else
+					{
+						if(speedX > 0)
+						{
+							var SpeedTrim = speedY-speedX;
+							if(SpeedTrim < 0) SpeedTrim = 0;
+							SpeedL = speedY;
+							SpeedR = SpeedTrim;
+						}
+						else if(speedX < 0)
+						{
+							var SpeedTrim = speedY - (speedX*-1);
+							if(SpeedTrim < 0) SpeedTrim = 0;
+							SpeedL = SpeedTrim;
+							SpeedR = speedY;
+						}
+					}
+				}
+				else if(speedY < 0)
+				{
+					<!-- speedYTrim = speedY*-1; -->
+					speedYTrim = Math.abs(speedY);
+					
+					if(speedX >-20 && speedX < 20 )
+					{
+						SpeedL = speedY;
+						SpeedR = speedY;
+					}
+					else
+					{
+						if(speedX > 0)
+						{
+							var SpeedTrim = speedYTrim-speedX;
+							if(SpeedTrim < 0) SpeedTrim = 0;
+							SpeedL = speedYTrim;
+							SpeedR = SpeedTrim;
+						}
+						else if(speedX < 0)
+						{
+							var SpeedTrim = speedYTrim - (speedX*-1);
+							if(SpeedTrim < 0) SpeedTrim = 0;
+							SpeedL = SpeedTrim;
+							SpeedR = speedYTrim;
+						}
+					}
+				}
+				
+				
+				if(SpeedL > 100) SpeedL = 100;
+				if(SpeedR > 100) SpeedR = 100;
+				if(SpeedL < 0) SpeedL = 0;
+				if(SpeedR < 0) SpeedR = 0;
+				
+				
+				
+				if(change != speedY + speedX)
+				{
+					console.log("SpeedL",SpeedL);
+					console.log("SpeedR",SpeedR);
+					
+					
+					change = speedY + speedX;
+					if(speedY == 0)
+					{
+						var formData = { leftSpeed: SpeedL, rightSpeed: SpeedR };
+						 $.ajax({ 
+						   type: 'POST',
+						   url: "/stop",
+						   data: formData, 
+						   success: function(resultData) { 
+						  } 
+						}); 
+					}
+					else if(speedY > 0)
+					{
+						var formData = { leftSpeed: SpeedL, rightSpeed: SpeedR };
+						 $.ajax({ 
+						   type: 'POST',
+						   url: "/forward",
+						   data: formData, 
+						   success: function(resultData) { 
+						  } 
+						});
+					}
+					if(speedY < 0)
+					{
+						var formData = { leftSpeed: SpeedL, rightSpeed: SpeedR };
+						 $.ajax({ 
+						   type: 'POST',
+						   url: "/backward",
+						   data: formData, 
+						   success: function(resultData) { 
+						  } 
+						});
+					}
+				}
+				
+			},10);
+				
+		</script>
+
+		<script>
+		$( document ).ready(function(){
+			$(document).on("input", "#slider1", function() {
+				var value = $(this).val()
+				console.log("Slider", value) 
+				var formData = { slider1: value };
+				 $.ajax({ 
+				   type: 'POST',
+				   url: "/servoposition",
+				   data: formData, 
+				   success: function(resultData) { 
+				  } 
+			    }); 
+			}); 
+		});
+		</script>
+
+	</body>
+</html>
